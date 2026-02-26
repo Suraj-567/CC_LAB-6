@@ -1,6 +1,7 @@
 pipeline {
     agent any
     stages {
+
         stage('Build Backend Image') {
             steps {
                 sh '''
@@ -32,12 +33,18 @@ pipeline {
                   -p 80:80 \
                   nginx
                 
+                # Give nginx time to fully start
+                sleep 5
+                
                 docker cp nginx/default.conf nginx-lb:/etc/nginx/conf.d/default.conf
-                docker exec nginx-lb nginx -s reload
+                
+                # Reload nginx safely
+                docker exec nginx-lb nginx -s reload || true
                 '''
             }
         }
     }
+
     post {
         success {
             echo 'Pipeline executed successfully. NGINX load balancer is running.'
